@@ -4,11 +4,11 @@
 // updated: 5/25/2019
 //
 // General configuration for BlynkPIRbatts.
-// Enter your private information in privacy.h
+//
 //////////////////////////////////////////////////////////
 
 //#define testBoard                              // Uncomment for developing on devices without the aux circuit connected
-#define privacy
+//#define privacy
 #ifndef privacy
   const char deviceName[] =   "myDevice";        // This is added to all hostnames & messages
   const char auth0[] =        "myBlynkAppAuthToken";// Blynk app auth token
