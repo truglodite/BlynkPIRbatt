@@ -1,10 +1,10 @@
 # BlynkPIRbatts
 This project aims to maximize battery life of an ESP8266 module with PIR motion sensor that communicates with Blynk. It makes use of a simple auxiliary circuit that allows the PIR to enable/disable the ESP using the CH_PD pin. The circuit also allows the ESP to keep itself enabled to finish code execution after the PIR goes low. Inactive draw is reduced to only the PIR idle current when this method is used. With a AM312 PIR sensor, modified with a low draw schmitt buffer (ie NL17SG17) on the output and low quiescent LDO (ie ADP160AU), idle draw of the device was measured at 15uA!
 
+[See Auxilliary circuit here](https://www.esp8266.com/viewtopic.php?f=11&t=4458&start=68)
 [See PIR mod here](https://www.esp8266.com/viewtopic.php?p=82466#p82466)
 
 *Project Inspired by: Barnabybear@esp8266.com*
-Circuit Info: https://www.esp8266.com/viewtopic.php?f=11&t=4458&start=68
 
 ## Code Features:
 - Blynk App Ready
