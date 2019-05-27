@@ -254,7 +254,7 @@ void doStuff(void)  {         //the main routine that runs after the Vpins are d
             //Serial.println("Sending alarm email");
             Serial.println("Sending alarm notification");
           #endif
-          //Blynk.email("porche@surewest.net", "From Blynk", stringMail);
+          //Blynk.email("test@msn.net", "From Blynk", stringMail);
           Blynk.notify(notifyPIR);
         }
         yield();  //ensure data is sent before disconnecting
