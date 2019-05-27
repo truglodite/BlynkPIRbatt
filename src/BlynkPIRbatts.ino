@@ -20,6 +20,7 @@
 extern "C" {
   #include "user_interface.h"
 }
+#include "configuration.h"
 
 #ifdef testBoard
   #define debug
@@ -28,7 +29,6 @@ extern "C" {
 #ifdef privacy
   #include "privacy.h"
 #endif
-#include "configuration.h"
 
 // Globals ////////////////////////////////////////////////
 unsigned long lastPirHigh = 0;                           // Holder for PIR timeout timer
