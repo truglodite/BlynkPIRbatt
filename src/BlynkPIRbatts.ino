@@ -26,8 +26,7 @@ extern "C" {
   #define debug
   #define BLYNK_PRINT Serial
 #endif
-#ifndef privacy
-  #define privacy
+#ifdef privacy
   #include "privacy.h"
 #endif
 
