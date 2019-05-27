@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////
 
 //#define testBoard                              // Uncomment for developing on devices without the aux circuit connected
-//#define privacy
+//#define privacy                                // Uncomment and add this section to /src/privacy.h if using github
 #ifndef privacy
   const char deviceName[] =   "myDevice";        // This is added to all hostnames & messages
   const char auth0[] =        "myBlynkAppAuthToken";// Blynk app auth token
