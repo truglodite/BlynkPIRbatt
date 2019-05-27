@@ -17,3 +17,4 @@ const char* update_username = "myOtaUsername"; // OTA username
 const char* otaPassword =   "myOtaPassword";   // OTA password (old pass: kwaker5)
 //IPAddress staticIP          (192,168,1,0);   // Static local IP (setup your router accordingly)
 //byte mac[] =                {0xDE,0xAD,0xBE,0xEF,0xFE,0xED};// Wifi MAC
+test
