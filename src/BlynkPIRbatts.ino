@@ -217,7 +217,7 @@ void doStuff(void)  {
       #endif
       Blynk.syncVirtual(ledVpin, triggersVpin, batteryVpin);
       #ifdef debug
-        Serial.println("state = 1");
+        Serial.println("script: state = 1");
       #endif
       state = 1;
       break;
@@ -229,7 +229,7 @@ void doStuff(void)  {
       else if(vbatt == vbattServerValue && ledServerValue == ledHigh && nTriggers == nTriggersServer) {
         #ifdef debug
           Serial.println("Sync successful");
-          Serial.println("state = 2");
+          Serial.println("script: state = 2");
         #endif
         state = 2;
       }
@@ -242,7 +242,7 @@ void doStuff(void)  {
         sprintf(temp, "%s: State1 Mismatch!", deviceName);
         Blynk.notify(temp);
         #ifdef debug
-          Serial.println("state = 4");
+          Serial.println("script: state = 4");
         #endif
         state = 4;
       }
@@ -255,7 +255,7 @@ void doStuff(void)  {
         sprintf(temp, "%s: State1 Timeout!", deviceName);
         Blynk.notify(temp);
         #ifdef debug
-          Serial.println("state = 4");
+          Serial.println("script: state = 4");
         #endif
         state = 4;
       }
@@ -276,7 +276,7 @@ void doStuff(void)  {
         Serial.println("wifi off");
       #endif
       #ifdef debug
-        Serial.println("state = 3");
+        Serial.println("script: state = 3");
       #endif
       state = 3;
     }
@@ -285,7 +285,7 @@ void doStuff(void)  {
       if(millis() < maxOnTime*1000) {  //Not a false positive PIR yet...
         #ifdef debug
           Serial.println("!Testboard timeout!");
-          Serial.println("state = 4");
+          Serial.println("script: state = 4");
           state = 4;
           return;
         #endif
@@ -296,7 +296,7 @@ void doStuff(void)  {
         else if(millis()-lastPirHigh > pirTimeout*1000)  {  // PIR timeout, move on
           #ifdef debug
             Serial.println("Normal time out");
-            Serial.println("state = 4");
+            Serial.println("script: state = 4");
           #endif
           state = 4;
           return;
@@ -306,7 +306,7 @@ void doStuff(void)  {
       else {  // We must have a PIR that is false triggering... move on
         #ifdef debug
           Serial.println("Error: state 2 false trigger");
-          Serial.println("state = 4");
+          Serial.println("script: state = 4");
         #endif
         state = 4;
       }
@@ -340,7 +340,7 @@ void doStuff(void)  {
       #endif
       Blynk.syncVirtual(ledVpin);
       #ifdef debug
-        Serial.println("state = 5");
+        Serial.println("script: state = 5");
       #endif
       state = 5;
       break;
@@ -353,7 +353,8 @@ void doStuff(void)  {
       // synced value matches, go ahead...
       else if(isLedSet && ledServerValue == ledLow) {
         #ifdef debug
-          Serial.println("state = 6");
+          Serial.println("Sync successful");
+          Serial.println("script: state = 6");
         #endif
         state = 6;
       }
@@ -366,7 +367,7 @@ void doStuff(void)  {
         sprintf(temp, "%s: State4 Mismatch!", deviceName);
         Blynk.notify(temp);
         #ifdef debug
-          Serial.println("state = 6");
+          Serial.println("script: state = 6");
         #endif
         state = 6;
       }
@@ -379,7 +380,7 @@ void doStuff(void)  {
         sprintf(temp, "%s: State4 Timeout!", deviceName);
         Blynk.notify(temp);
         #ifdef debug
-          Serial.println("state = 6");
+          Serial.println("script: state = 6");
         #endif
         state = 6;
         return;
@@ -409,7 +410,7 @@ void doStuff(void)  {
         Serial.println("-=|  Goodbye! |=-");
       #endif
       #ifdef debug
-        Serial.println("state = 7");
+        Serial.println("script: state = 7");
       #endif
       state = 7;
     }
