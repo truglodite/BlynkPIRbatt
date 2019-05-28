@@ -141,7 +141,7 @@ void checkConnection(void) {
       // Restart after timeout... or sleep until PIR wakes us up
       if(millis() - startConnectTime > 1000*blynkTimeout) {
         #ifdef debug
-          Serial.println("Failed to connect... shutting down.");
+          Serial.println("Error: Failed to connect... shutting down.");
         #endif
         digitalWrite(holdEnablePin,LOW);
         ESP.restart();
@@ -157,7 +157,7 @@ void checkConnection(void) {
   else {
     myIP = WiFi.localIP();  // save IP address
     #ifdef debug
-      Serial.print("Still Connected: ");
+      Serial.print("Already Connected: ");
       Serial.println(myIP);
     #endif
   }
@@ -211,16 +211,26 @@ void doStuff(void)  {
         //Blynk.email("test@msn.net", "From Blynk", stringMail);
         Blynk.notify(notifyPIR);
       }
-      state = 1;
       yield();
+      #ifdef debug
+        Serial.println("Syncing LED, Triggers, & Vbatt");
+      #endif
       Blynk.syncVirtual(ledVpin, triggersVpin, batteryVpin);
+      #ifdef debug
+        Serial.println("state = 1");
+      #endif
+      state = 1;
       break;
     }
 
-    case 1: { // wait for values to sync then verify
+    case 1: { // verify data was uploaded correctly
       if(!isLedSet || !isTriggersSliderSet || !isVbattSet)  yield();
       // values all match, go ahead and disconnect
       else if(vbatt == vbattServerValue && ledServerValue == ledHigh && nTriggers == nTriggersServer) {
+        #ifdef debug
+          Serial.println("Sync successful");
+          Serial.println("state = 2");
+        #endif
         state = 2;
       }
       // synced values don't match... must have been an error
@@ -231,6 +241,9 @@ void doStuff(void)  {
         char temp[] = {0};
         sprintf(temp, "%s: State1 Mismatch!", deviceName);
         Blynk.notify(temp);
+        #ifdef debug
+          Serial.println("state = 4");
+        #endif
         state = 4;
       }
       // catch misc. failed syncing
@@ -241,6 +254,9 @@ void doStuff(void)  {
         char temp[] = {0};
         sprintf(temp, "%s: State1 Timeout!", deviceName);
         Blynk.notify(temp);
+        #ifdef debug
+          Serial.println("state = 4");
+        #endif
         state = 4;
       }
       break;
@@ -260,18 +276,17 @@ void doStuff(void)  {
         Serial.println("wifi off");
       #endif
       #ifdef debug
-        Serial.print("Waiting for PIR timeout: ");
+        Serial.println("state = 3");
       #endif
       state = 3;
     }
 
     case 3:{ // Wait for PIR to timeout
       if(millis() < maxOnTime*1000) {  //Not a false positive PIR yet...
-        #ifdef testBoard
-          state = 4;  //no sense in waiting for a PIR if we don't have one connected
-          #ifdef debug
-            Serial.println("debug time out");
-          #endif
+        #ifdef debug
+          Serial.println("!Testboard timeout!");
+          Serial.println("state = 4");
+          state = 4;
           return;
         #endif
         if(digitalRead(pirPin)) {  //reset timer if PIR triggers while waiting
@@ -279,19 +294,21 @@ void doStuff(void)  {
           return;
         }
         else if(millis()-lastPirHigh > pirTimeout*1000)  {  // PIR timeout, move on
-          state = 4;
           #ifdef debug
             Serial.println("Normal time out");
+            Serial.println("state = 4");
           #endif
+          state = 4;
           return;
         }
         yield(); //delay to prevent watchdog timer reset
       }
       else {  // We must have a PIR that is false triggering... move on
-        state = 4;
         #ifdef debug
           Serial.println("Error: state 2 false trigger");
+          Serial.println("state = 4");
         #endif
+        state = 4;
       }
       break;
     }
@@ -318,17 +335,26 @@ void doStuff(void)  {
       Blynk.virtualWrite(ledVpin,ledLow);        // Turn off LED
       isLedSet = 0;
       yield();
+      #ifdef debug
+        Serial.println("Syncing LED");
+      #endif
       Blynk.syncVirtual(ledVpin);
+      #ifdef debug
+        Serial.println("state = 5");
+      #endif
       state = 5;
       break;
     }
 
-    case 5: { // wait for value to sync
+    case 5: { // verify data was uploaded correctly
       if(!isLedSet) {
         yield();
       }
       // synced value matches, go ahead...
       else if(isLedSet && ledServerValue == ledLow) {
+        #ifdef debug
+          Serial.println("state = 6");
+        #endif
         state = 6;
       }
       // synced values don't match... must have been an error
@@ -339,6 +365,9 @@ void doStuff(void)  {
         char temp[] = {0};
         sprintf(temp, "%s: State4 Mismatch!", deviceName);
         Blynk.notify(temp);
+        #ifdef debug
+          Serial.println("state = 6");
+        #endif
         state = 6;
       }
       // catch failed syncing
@@ -349,6 +378,9 @@ void doStuff(void)  {
         char temp[] = {0};
         sprintf(temp, "%s: State4 Timeout!", deviceName);
         Blynk.notify(temp);
+        #ifdef debug
+          Serial.println("state = 6");
+        #endif
         state = 6;
         return;
       }
@@ -376,6 +408,9 @@ void doStuff(void)  {
         Serial.println("low");
         Serial.println("-=|  Goodbye! |=-");
       #endif
+      #ifdef debug
+        Serial.println("state = 7");
+      #endif
       state = 7;
     }
 
@@ -384,7 +419,7 @@ void doStuff(void)  {
         ESP.reset();
       #endif
       yield();  //delay to prevent watchdog timer reset
-      if(millis() > maxOnTime) {
+      if(millis() > maxOnTime*1000) {
         digitalWrite(holdEnablePin,LOW);
         ESP.deepSleep(0);  //stop PIR errors
       }
@@ -477,14 +512,11 @@ void setup()  {
 
   // Sync all blynk vpins
   #ifdef debug
-    Serial.print("Syncing Blynk:");
+    Serial.println("Syncing OTA, Arm, & Triggers");
   #endif
   //Blynk.syncVirtualAll();
   Blynk.syncVirtual(firmwareVpin, armButtonVpin, triggersVpin);
-  #ifdef debug
-    Serial.println("Synced");
-  #endif
-  BLYNK_LOG("Synced all");
+  BLYNK_LOG("Sync OTA, Arm, & Triggers");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -493,7 +525,10 @@ void loop() {
   else Blynk.run();
 
   // Catch any misc. errors that might kill the battery
-  if(millis() > maxOnTime) {
+  if(millis() > maxOnTime*1000) {
+    #ifdef debug
+      Serial.println("Error: loop() timeout");
+    #endif
     digitalWrite(holdEnablePin,LOW);
     ESP.deepSleep(0);  //stop PIR errors
   }
