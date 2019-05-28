@@ -6,9 +6,12 @@
 // General configuration for BlynkPIRbatts.
 //
 //////////////////////////////////////////////////////////
+#pragma once
+// Uncomment for developing on devices without the aux circuit connected
+//#define testBoard
+// Uncomment and add this section to /src/privacy.h if using github
+#define privacy
 
-//#define testBoard                              // Uncomment for developing on devices without the aux circuit connected
-//#define privacy                                // Uncomment and add this section to /src/privacy.h if using github
 #ifndef privacy
   const char deviceName[] =   "myDevice";        // This is added to all hostnames & messages
   const char auth0[] =        "myBlynkAppAuthToken";// Blynk app auth token
@@ -28,7 +31,7 @@
 #define holdEnablePin       12                    // Physical pin: "stay on" output
 #define firmwareVpin        V0                    // Firmware OTA Button
 #define armButtonVpin       V1                    // Button to arm/disarm
-#define statusVpin          V2                    // LED to indicate status
+#define ledVpin             V2                    // LED to indicate status
 #define triggersVpin        V3                    // Slider to indicate # of triggers
 #define batteryVpin         V4                    // Battery Voltage display
 #define pirTimeout          10                    // Seconds after PIR low to wait before "turning off"
