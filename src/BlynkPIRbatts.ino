@@ -11,6 +11,8 @@
 
   All user configs are in configuration.h.
 */
+// Uncomment for developing on devices without the aux circuit connected
+//#define testBoard
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>

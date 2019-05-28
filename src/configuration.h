@@ -7,8 +7,6 @@
 //
 //////////////////////////////////////////////////////////
 #pragma once
-// Uncomment for developing on devices without the aux circuit connected
-//#define testBoard
 // Uncomment and add this section to /src/privacy.h if using github
 #define privacy
 
