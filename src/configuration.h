@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////
 #pragma once
 // Uncomment and add this section to /src/privacy.h if using github
-#define privacy
+//#define privacy
 
 #ifndef privacy
   const char deviceName[] =   "myDevice";        // This is added to all hostnames & messages
