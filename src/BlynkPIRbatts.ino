@@ -13,6 +13,7 @@
 */
 // Uncomment for developing on devices without the aux circuit connected
 //#define testBoard
+#define privacy
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -506,7 +507,7 @@ void setup()  {
 //////////////////////////////////////////////////////////////////////////
 void loop() {
   // Wifi is off in these states
-  if(state==2 || state==3 || state==6 || state==7) {}
+  if(state==2 || state==5 || state==6) {}
   else Blynk.run();
 
   // Catch any misc. errors that might kill our battery
