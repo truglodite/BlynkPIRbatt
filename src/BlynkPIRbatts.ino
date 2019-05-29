@@ -1,7 +1,7 @@
 /*
   blynkPIRbattsHttpOTA3.ino
   by: Truglodite
-  Updated 5/22/2019
+  Updated 5/28/2019
 
   This code provides for a long lasting battery powered PIR alarm using the Blynk app,
   ESP8266-12,a PIR motion sensor, and a few resistors & a diode. This version:
@@ -69,9 +69,9 @@ char notifyPIR[sizeof(notifyPIRX) + sizeof(deviceName) + 1] = {0};
 ESP8266WebServer httpServer(80);
 ESP8266HTTPUpdateServer httpUpdater;
 
-// These functions run whenever Blynk.syncVirtualALL() is called,
-// or individually with Blynk.syncVirtual(vPin1, vPin2, ...)
-BLYNK_WRITE(firmwareVpin) {  // Sync firmware button from app, and set the flag
+// These functions all run whenever a Blynk.syncALL() is called,
+// or individually with a Blynk.syncVirtual(vPin1, vPin2, ...)
+BLYNK_WRITE(firmwareVpin) {  // Sync OTA button from server and set flag
   #ifdef debug
     Serial.print("V");
     Serial.print(firmwareVpin);
@@ -83,7 +83,7 @@ BLYNK_WRITE(firmwareVpin) {  // Sync firmware button from app, and set the flag
   #endif
   isFWbuttonSet = 1;
 }
-BLYNK_WRITE(armButtonVpin) {     //read arm/disarm value from app Vpin
+BLYNK_WRITE(armButtonVpin) { // read arm/disarm from server and set flag
   #ifdef debug
     Serial.print("V");
     Serial.print(armButtonVpin);
@@ -95,7 +95,7 @@ BLYNK_WRITE(armButtonVpin) {     //read arm/disarm value from app Vpin
   #endif
   isArmButtonSet = 1;
 }
-BLYNK_WRITE(triggersVpin) {      //Read # of triggers from app Vpin
+BLYNK_WRITE(triggersVpin) {  // read triggers from server
   #ifdef debug
     Serial.print("V");
     Serial.print(triggersVpin);
@@ -107,7 +107,7 @@ BLYNK_WRITE(triggersVpin) {      //Read # of triggers from app Vpin
   #endif
   isTriggersSliderSet = 1;
 }
-BLYNK_WRITE(ledVpin) {      //Read # of triggers from app Vpin
+BLYNK_WRITE(ledVpin) { // read # of triggers from app Vpin
   #ifdef debug
     Serial.print("V");
     Serial.print(ledVpin);
@@ -179,7 +179,7 @@ void radioUp(void) {
 #ifdef debug
   Serial.println("Configuring Blynk");
 #endif
-  Blynk.config(auth0); // Default Blynk server
+  Blynk.config(authToken); // Default Blynk server
   return;
 }
 
@@ -195,7 +195,7 @@ void radioDown(void) {
   WiFi.forceSleepBegin();
   yield(); // this delay is required for wifi to actually shut down
 #ifdef debug
-  Serial.println("wifi off");
+  Serial.println("done");
 #endif
 }
 //////////////////////////////////////////////////////////////////////////
@@ -204,13 +204,12 @@ void doStuff(void)  {
   switch(state) {
     //  state:
     //  0 = Wake, send message(s) and turn app LED on, resync pins
-    //  1 = Verify data is sent correctly (otherwise -> 4)
-    //  2 = wifi off
-    //  3 = Wait if PIR off <=30sec
-    //  4 = PIR off >30sec, turn off app LED & send voltage, resync pins
-    //  5 = Verify data is sent correctly (otherwise -> 6)
-    //  6 = turn off, set ch_pd low
-    //  7 = wait 30sec, deepsleep
+    //  1 = Verify data is sent correctly (otherwise -> 3), then wifi off
+    //  2 = Wait if PIR off <=30sec
+    //  3 = PIR off >30sec, turn off app LED & send voltage, resync pins
+    //  4 = Verify data is sent correctly (otherwise -> 5)
+    //  5 = turn off, set ch_pd low
+    //  6 = wait 30sec, deepsleep
     //
     case 0:{ //Send alarm "on" stuff
       OTAnotificationSent = 0;  //reset flag so we can get another notification
@@ -258,7 +257,7 @@ void doStuff(void)  {
       break;
     }
 
-    case 1: { // verify data was uploaded correctly
+    case 1: { // verify data was uploaded correctly, then disconnect
       if(!isLedSet || !isTriggersSliderSet || !isVbattSet)  yield();
       // values all match, go ahead and disconnect
       else if(vbatt == vbattServerValue && ledServerValue == ledHigh && nTriggers == nTriggersServer) {
@@ -266,6 +265,7 @@ void doStuff(void)  {
           Serial.println("Sync successful");
           Serial.println("script: state = 2");
         #endif
+        radioDown();
         state = 2;
       }
       // synced values don't match... must have been an error
@@ -274,12 +274,12 @@ void doStuff(void)  {
           Serial.println("Error: state 1 sync mismatch");
         #endif
         char temp[] = {0};
-        sprintf(temp, "%s: State1 Mismatch!", deviceName);
+        sprintf(temp, "%s: State1 Mismatch!", hostName);
         Blynk.notify(temp);
         #ifdef debug
-          Serial.println("script: state = 4");
+          Serial.println("script: state = 3");
         #endif
-        state = 4;
+        state = 3;
       }
       // catch misc. failed syncing
       if(millis() > maxOnTime*1000) {
@@ -290,24 +290,19 @@ void doStuff(void)  {
         sprintf(temp, "%s: State1 Timeout!", deviceName);
         Blynk.notify(temp);
         #ifdef debug
-          Serial.println("script: state = 4");
+          Serial.println("script: state = 3");
         #endif
-        state = 4;
+        state = 3;
       }
       break;
     }
 
-    case 2: { // Disconnect wifi
-      radioDown();
-      state = 3;
-    }
-
-    case 3:{ // Wait for PIR to timeout
+    case 2:{ // Wait for PIR to timeout
       if(millis() < maxOnTime*1000) {  //Not a false positive PIR yet...
         #ifdef debug
           Serial.println("!Testboard timeout!");
-          Serial.println("script: state = 4");
-          state = 4;
+          Serial.println("script: state = 3");
+          state = 3;
           return;
         #endif
         if(digitalRead(pirPin)) {  //reset timer if PIR triggers while waiting
@@ -317,9 +312,9 @@ void doStuff(void)  {
         else if(millis()-lastPirHigh > pirTimeout*1000)  {  // PIR timeout, move on
           #ifdef debug
             Serial.println("Normal time out");
-            Serial.println("script: state = 4");
+            Serial.println("script: state = 3");
           #endif
-          state = 4;
+          state = 3;
           return;
         }
         yield(); //delay to prevent watchdog timer reset
@@ -327,14 +322,14 @@ void doStuff(void)  {
       else {  // We must have a PIR that is false triggering... move on
         #ifdef debug
           Serial.println("Error: state 2 false trigger");
-          Serial.println("script: state = 4");
+          Serial.println("script: state = 3");
         #endif
-        state = 4;
+        state = 3;
       }
       break;
     }
 
-    case 4:{  // Connect wifi & send led off
+    case 3:{  // Connect wifi & send led off
       radioUp();
       checkConnection();
 
@@ -349,13 +344,13 @@ void doStuff(void)  {
       #endif
       Blynk.syncVirtual(ledVpin);
       #ifdef debug
-        Serial.println("script: state = 5");
+        Serial.println("script: state = 4");
       #endif
-      state = 5;
+      state = 4;
       break;
     }
 
-    case 5: { // verify data was uploaded correctly
+    case 4: { // verify data was uploaded correctly
       if(!isLedSet) {
         yield();
       }
@@ -363,9 +358,9 @@ void doStuff(void)  {
       else if(isLedSet && ledServerValue == ledLow) {
         #ifdef debug
           Serial.println("Sync successful");
-          Serial.println("script: state = 6");
+          Serial.println("script: state = 5");
         #endif
-        state = 6;
+        state = 5;
       }
       // synced values don't match... must have been an error
       else if(isLedSet && ledServerValue == !ledLow){
@@ -376,9 +371,9 @@ void doStuff(void)  {
         sprintf(temp, "%s: State4 Mismatch!", deviceName);
         Blynk.notify(temp);
         #ifdef debug
-          Serial.println("script: state = 6");
+          Serial.println("script: state = 5");
         #endif
-        state = 6;
+        state = 5;
       }
       // catch failed syncing
       if(millis() > maxOnTime*1000) {
@@ -389,15 +384,15 @@ void doStuff(void)  {
         sprintf(temp, "%s: State4 Timeout!", deviceName);
         Blynk.notify(temp);
         #ifdef debug
-          Serial.println("script: state = 6");
+          Serial.println("script: state = 5");
         #endif
-        state = 6;
+        state = 5;
         return;
       }
       break;
     }
 
-    case 6: {  // disconnect wifi & set 'enable low'
+    case 5: {  // disconnect wifi & set 'enable low'
       radioDown();
       #ifdef debug
         Serial.print("Setting CH_PD: ");
@@ -409,12 +404,12 @@ void doStuff(void)  {
         Serial.println("-=|  Goodbye! |=-");
       #endif
       #ifdef debug
-        Serial.println("script: state = 7");
+        Serial.println("script: state = 6");
       #endif
-      state = 7;
+      state = 6;
     }
 
-    case 7:{ //Do nothing until PIR disables us
+    case 6:{ //Do nothing until PIR disables us
       #ifdef testBoard
         ESP.reset();
       #endif
@@ -510,10 +505,11 @@ void setup()  {
 
 //////////////////////////////////////////////////////////////////////////
 void loop() {
-  if(state==2 || state==3 || state==6 || state==7) {}  // Don't need this while wifi is off
+  // Wifi is off in these states
+  if(state==2 || state==3 || state==6 || state==7) {}
   else Blynk.run();
 
-  // Catch any misc. errors that might kill the battery
+  // Catch any misc. errors that might kill our battery
   if(millis() > maxOnTime*1000) {
     #ifdef debug
       Serial.println("Error: loop() timeout");
@@ -522,7 +518,7 @@ void loop() {
     ESP.deepSleep(0);  //stop PIR errors
   }
 
-  // FW button on & battery OK: send a notification, set flag, start timer
+  // OTA button ON & battery OK: send notification, set flag, start timer
   if(isFWbuttonSet && fwButton && !OTAnotificationSent && !batteryLow) {
     #ifdef debug
       Serial.println("Sending OTA notification");
@@ -534,14 +530,15 @@ void loop() {
     #endif
     otaStartTime = millis();
   }
-  // Battery too low to OTA, send a different notification
-  else if(isFWbuttonSet && fwButton && !OTAnotificationSent)  {
+  // Battery low, no OTA, send a different notification
+  else if(isFWbuttonSet && fwButton && !OTAnotificationSent && batteryLow)  {
     #ifdef batteryMonitor
       #ifdef debug
         Serial.println("Sending low batt OTA notification");
       #endif
       Blynk.notify("Batt too low for OTA...");
       OTAnotificationSent = 1;
+      fwButton = 0; // dirty but works
     #endif
   }
 

@@ -1,18 +1,16 @@
 //////////////////////////////////////////////////////////
 // configuration.h
 // by: Truglodite
-// updated: 5/25/2019
+// updated: 5/28/2019
 //
 // General configuration for BlynkPIRbatts.
 //
 //////////////////////////////////////////////////////////
 #pragma once
-// Uncomment and add this section to /src/privacy.h if using github
-//#define privacy
-
+// Github users can add a /src/privacy.h with #define privacy, etc.
 #ifndef privacy
   const char deviceName[] =   "myDevice";        // This is added to all hostnames & messages
-  const char auth0[] =        "myBlynkAppAuthToken";// Blynk app auth token
+  const char authToken[] =    "myBlynkAppAuthToken";// Blynk app auth token
   //The default battery voltage calibration factor is for a 330k/100k divider & 1 cell Lithium Ion, but can be adjusted for your needs below.
   const float vbattRatio =    4.129;
   const char ssid[] =         "myWifiSSID";      // Wifi SSID
@@ -32,7 +30,7 @@
 #define ledVpin             V2    // LED to indicate status
 #define triggersVpin        V3    // slider to indicate # of triggers
 #define batteryVpin         V4    // battery Voltage display
-#define pirTimeout          10    // seconds after PIR low before "turning off"
+#define pirTimeout          30    // seconds after PIR low before "turning off"
 #define triggersMax         50    // set triggers to 0 when > this value
 #define otaTimeout          300   // seconds to wait before OTA cancels
 #define blynkTimeout        5     // seconds to wait for connect before restart
