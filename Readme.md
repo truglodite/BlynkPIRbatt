@@ -8,32 +8,35 @@ This project aims to maximize battery life of an ESP8266 module with PIR motion 
 *Project Inspired by: Barnabybear@esp8266.com*
 
 ## Code Features:
-- Blynk App Ready
-- Browser Firmware Update w/ Blynk App Button
-- Battery Monitoring
+- Blynk app ready
+- Browser OTA firmware update controlled w/ Blynk app button
 - Blynk notification ARM/DISARM button
-- Sends trigger count to track activity
+- Displays motion status in app LED
+- Battery monitoring
+- Sends trigger count to allow tracking motion history (chart in app)
 - Minimizes wifi on time
 - Avoids false triggering sensitive PIR's by waiting after wifi off before shutdown
+- Verifies data sent to Blynk server before shutting off wifi
+- Sends notification when verification finds mismatched data
 
 ## Basic Operation:
 *User configurations are in configuration.h.*
 - Wakes on PIR rising edge (PIR brings CH_PD high)
 - Write io12 HIGH to maintain high CH_PD (prevents PIR from turning us off when low)
 - Read battery voltage, if critical, write CH_PD low and loop (wait for PIR to shut it down)
-- Connect to Blynk
-- Read OTA and arm buttons, and Trigger Count slider from app
+- Wifi on, connect to Blynk
+- Sync OTA and arm buttons, and Trigger Count slider from Blynk server
 - If FW OTA is ON & battery is not low, send OTA notification and wait for FW upload (5min default, then reset)
-- If FW OTA is OFF, send occupied signals to the app (LED on, notification if enabled, increment triggers)
+- If FW OTA is OFF, send occupied signals to the app, resync Vpins (LED on, notification if enabled, increment triggers)
+- Verify data sent correctly
 - Disconnect from Blynk and turn wifi off
 - Listen to the PIR for additional triggers
 - Continue after 30sec without PIR triggers
-- Turn wifi on & connect to Blynk
-- Send LED off and battery voltage to the app
-- Send notification if battery is low
-- Turn wifi off
-- Write io12 LOW... if PIR is low, ESP is disabled
-- Wait 30sec for PIR to disable, if not deepsleep
+- Wifi on & reconnect to Blynk
+- Send LED off and battery voltage to the app, send notification if battery is low, resync vpins
+- Verify data sent correctly
+- Turn wifi off & write io12 LOW... if PIR is low, ESP is disabled now
+- Wait 30sec for PIR to disable us, if not deepsleep
 
 ## Default Pinout
 ESPpin | Description
