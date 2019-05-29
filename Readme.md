@@ -57,3 +57,6 @@ V1 | Arm/disarm Button
 V2 | PIR status LED
 V3 | Triggers Slider
 V4 | Battery Voltage
+
+## Privacy.h
+This code includes a "privacy" macro that is disabled by default. Most users can ignore this and just edit their info in to configuration.h; the code will work as intended with the same level of privacy/security. Privacy.h and the privacy macro are there purely for the convenience of Github users. If you use github, you can create a "privacy.h" file in the "src/"" directory, copy the privacy macro section from "configuration.h" to it (just the part between the #define lines), edit in your personal info, and uncomment "#define privacy" in "BlynkPIRbatts.ino". The code will then compile properly with your personal info from privacy.h, however when committing to github, privacy.h will not be shared. An example privacy.h file is not included in the repository to avoid the potential of inadvertently sending the private info to github.
