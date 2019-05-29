@@ -165,6 +165,39 @@ void checkConnection(void) {
   }
   return;
 }
+
+// Function to enable wifi radio & connect to Blynk
+void radioUp(void) {
+#ifdef debug
+  Serial.println("Connecting Wifi");
+#endif
+  WiFi.mode(WIFI_STA); // Configure & connect to wifi
+  // WiFi.setOutputPower(10); // Use this if you want to play
+  wifi_station_set_hostname(hostName);
+  wifi_station_connect();
+  WiFi.begin(ssid, pass);
+#ifdef debug
+  Serial.println("Configuring Blynk");
+#endif
+  Blynk.config(auth0); // Default Blynk server
+  return;
+}
+
+// Function to disconnect from Blynk and disable wifi radio
+void radioDown(void) {
+#ifdef debug
+  Serial.print("Disconnecting Wifi: ");
+#endif
+  Blynk.disconnect();
+  WiFi.disconnect();
+  wifi_station_disconnect();
+  WiFi.mode(WIFI_OFF);
+  WiFi.forceSleepBegin();
+  yield(); // this delay is required for wifi to actually shut down
+#ifdef debug
+  Serial.println("wifi off");
+#endif
+}
 //////////////////////////////////////////////////////////////////////////
 // the main routine that runs after primary Vpins are synced
 void doStuff(void)  {
@@ -265,21 +298,7 @@ void doStuff(void)  {
     }
 
     case 2: { // Disconnect wifi
-      #ifdef debug
-        Serial.print("Disconnecting Wifi: ");
-      #endif
-      Blynk.disconnect();
-      WiFi.disconnect();
-      wifi_station_disconnect();
-      WiFi.mode(WIFI_OFF);
-      WiFi.forceSleepBegin();
-      yield(); //this delay is required for wifi to actually shut down
-      #ifdef debug
-        Serial.println("wifi off");
-      #endif
-      #ifdef debug
-        Serial.println("script: state = 3");
-      #endif
+      radioDown();
       state = 3;
     }
 
@@ -316,19 +335,7 @@ void doStuff(void)  {
     }
 
     case 4:{  // Connect wifi & send led off
-      #ifdef debug
-        Serial.println("Reconnecting WiFi");
-      #endif
-      WiFi.forceSleepWake();                // Turn wifi on
-      WiFi.mode(WIFI_STA);
-      wifi_station_set_hostname(hostName);
-      wifi_station_connect();
-      WiFi.begin(ssid,pass);                // Default Blynk server
-
-      #ifdef debug
-        Serial.println("Config Blynk...");
-      #endif
-      Blynk.config(auth0);        // Default Blynk server
+      radioUp();
       checkConnection();
 
       #ifdef debug
@@ -391,18 +398,8 @@ void doStuff(void)  {
     }
 
     case 6: {  // disconnect wifi & set 'enable low'
+      radioDown();
       #ifdef debug
-        Serial.print("Disconnecting wifi: ");
-        BLYNK_LOG("Disconnecting");
-      #endif
-      Blynk.disconnect();
-      WiFi.disconnect();           // Shut down wifi now to prevent false restarts
-      wifi_station_disconnect();
-      WiFi.mode(WIFI_OFF);
-      WiFi.forceSleepBegin();
-      yield();
-      #ifdef debug
-        Serial.println("wifi off");
         Serial.print("Setting CH_PD: ");
       #endif
       digitalWrite(holdEnablePin,LOW);
@@ -484,18 +481,7 @@ void setup()  {
   sprintf(notifyOTAtimeout, "%s%s", deviceName, notifyOTAtimeoutX);
   sprintf(notifyPIR, "%s%s", deviceName, notifyPIRX);
 
-  #ifdef debug
-    Serial.println("Connect Wifi...");
-  #endif
-  WiFi.mode(WIFI_STA);       // Configure & connect to wifi
-  //WiFi.setOutputPower(10); // Use this if you want to play
-  wifi_station_set_hostname(hostName);
-  wifi_station_connect();
-  WiFi.begin(ssid,pass);
-  #ifdef debug
-    Serial.println("Config Blynk...");
-  #endif
-  Blynk.config(auth0);        // Default Blynk server
+  radioUp();
   checkConnection();          // Connect to Blynk
 
   // combine this string now that we have an IP

@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////
 #pragma once
 // Uncomment and add this section to /src/privacy.h if using github
-//#define privacy
+#define privacy
 
 #ifndef privacy
   const char deviceName[] =   "myDevice";        // This is added to all hostnames & messages
@@ -19,7 +19,7 @@
   const char pass[]=          "myWifiPassword";  // Wifi WPA2 password
   const char* update_path =   "/firmware";       // OTA webserver update directory
   const char* update_username = "myOtaUsername"; // OTA username
-  const char* otaPassword =   "myOtaPassword";   // OTA password (old pass: kwaker5)
+  const char* otaPassword =   "myOtaPassword";   // OTA password
   //IPAddress staticIP          (192,168,1,0);   // Static local IP (setup your router accordingly)
   //byte mac[] =                {0xDE,0xAD,0xBE,0xEF,0xFE,0xED};// Wifi MAC
 #endif
