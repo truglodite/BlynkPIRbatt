@@ -13,7 +13,7 @@
 */
 // Uncomment for developing on devices without the aux circuit connected
 //#define testBoard
-#define privacy
+//#define privacy
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
